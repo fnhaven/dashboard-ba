@@ -10,6 +10,8 @@ app/storage/
 public/storage
 public/hot
 storage/*.key
+storage/catalog/*
+storage/user_image/*
 .env.*.php
 .env.php
 .env
