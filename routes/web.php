@@ -14,6 +14,9 @@
 Route::get('login', 'HomepageController@login')->name('login')->middleware('guest');
 Route::post('login', 'LoginController@login')->middleware('guest');
 
+# catalog image
+Route::get('catalog/image/{file?}/{size?}', 'Rest\CatalogController@generate_image');
+
 Route::group(['middleware' => ['auth']], function () {
     # dashboard / homepage
     Route::get('/', 'HomepageController@index');
@@ -23,8 +26,7 @@ Route::group(['middleware' => ['auth']], function () {
     
     # catalog
     Route::get('catalog', 'HomepageController@catalog');
-    Route::get('catalog/image/{file?}/{size?}', 'Rest\CatalogController@generate_image');
-
+    
     # category
     Route::get('category', 'HomepageController@category');
 });

@@ -19,7 +19,9 @@ class CatalogController extends Controller
     public function get_all(){
         $cat = Catalog::select(['name', 'description', 'slug', 'image', 'price', 'stock', 'discount', 'discount_type', 'rate', 'updated_at'])->get();
 
-        return response()->json(['status' => true, 'data' => $cat, 'total' => $cat->count()]);
+        return response()->json(['status' => true, 'data' => $cat, 'total' => $cat->count()])
+            ->header('Content-Type', 'application/json')
+            ->header('Access-Control-Allow-Origin', '*');
     }
 
     public function show($id){
