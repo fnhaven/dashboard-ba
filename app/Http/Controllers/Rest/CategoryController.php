@@ -42,7 +42,7 @@ class CategoryController extends Controller
             endforeach;
         endforeach;
 
-        return response()->json(['status' => true, 'data' => $data])
+        return response()->json(['status' => true, 'data' => $data], 200)
             ->header('Content-Type', 'application/json')
             ->header('Access-Control-Allow-Origin', '*');
     }
@@ -52,7 +52,7 @@ class CategoryController extends Controller
             return $this->responseError('Not Found!', StatusCodes::NOT_FOUND);
         }
 
-        return response()->json(['status' => true, 'data' => $category])
+        return response()->json(['status' => true, 'data' => $category], 200)
             ->header('Content-Type', 'application/json')
             ->header('Access-Control-Allow-Origin', '*');
     }
@@ -62,7 +62,7 @@ class CategoryController extends Controller
             return $this->responseError('Not Found!', StatusCodes::NOT_FOUND);
         }
 
-        return response()->json(['status' => true, 'data' => $category])
+        return response()->json(['status' => true, 'data' => $category], 200)
             ->header('Content-Type', 'application/json')
             ->header('Access-Control-Allow-Origin', '*');
     }
@@ -90,7 +90,7 @@ class CategoryController extends Controller
 
         $category->save();
 
-        return response()->json(['status' => true, 'data' => $category]);
+        return response()->json(['status' => true, 'data' => $category], 200);
     }
 
     public function update(Request $request, $id){
@@ -111,7 +111,7 @@ class CategoryController extends Controller
 
         $category->save();
 
-        return response()->json(['status' => true, 'data' => $category]);
+        return response()->json(['status' => true, 'data' => $category], 200);
     }
 
     public function pinned($id){
@@ -123,7 +123,7 @@ class CategoryController extends Controller
 
         $category->save();
 
-        return response()->json(['status' => true, 'data' => $category]);
+        return response()->json(['status' => true, 'data' => $category], 200);
     }
 
     public function delete(Request $request, $id){

@@ -1,4 +1,3 @@
-<?php
-    return [
-        'secret' => 'KbPeShVmYq3t6w9z$C&F)J@NcQfTjWnZr4u7x!A%D*G-KaPdSgUkXp2s5v8y/B?E(H+MbQeThWmYq3t6w9z$C&F)J@NcRfU'
-    ];
+<?php return array (
+  'secret' => '2ce2bc0b8fdab78bb6aa90b2b7bfbca5-wbUfxCMvIHj5BKpl2WUpr5zsjYjtu2OEJV79oddRJVHQFYwaBzlYq9EA6cl',
+);

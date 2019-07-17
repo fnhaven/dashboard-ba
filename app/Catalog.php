@@ -9,5 +9,10 @@ class Catalog extends Model
 {
     use SoftDeletes;
  
-   	protected $dates = ['deleted_at'];
+    protected $dates = ['deleted_at'];
+       
+    public function category()
+    {
+        return $this->belongsTo('\App\Category', 'category_id');
+    }
 }

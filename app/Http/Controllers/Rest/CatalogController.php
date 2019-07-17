@@ -16,10 +16,24 @@ class CatalogController extends Controller
 {
     use ErrorResponses;
 
-    public function get_all(){
-        $cat = Catalog::select(['name', 'description', 'slug', 'image', 'price', 'stock', 'discount', 'discount_type', 'rate', 'updated_at'])->get();
+    public function get_all(Request $request){
+        $cat = Catalog::select(['name', 'category_id', 'description', 'slug', 'image', 'price', 'stock', 'discount', 'discount_type', 'rate', 'updated_at'])->get();
 
-        return response()->json(['status' => true, 'data' => $cat, 'total' => $cat->count()])
+        $cat = collect($cat)->map(function($v, $k){
+            $image = $v->image;
+
+            $v->category_name = $v->category->name;
+
+            unset($v->category);
+            unset($v->category_id);
+
+            $v->image = url('catalog/image/') . '/' . $image;
+            $v->image_small = url('catalog/image/') . '/' . $image . '/sm';
+
+            return $v;
+        });
+
+        return response()->json(['status' => true, 'data' => $cat, 'total' => $cat->count()], 200)
             ->header('Content-Type', 'application/json')
             ->header('Access-Control-Allow-Origin', '*');
     }
@@ -29,7 +43,7 @@ class CatalogController extends Controller
             return $this->responseError('Not Found!', StatusCodes::NOT_FOUND);
         }
 
-        return response()->json(['status' => true, 'data' => $product]);
+        return response()->json(['status' => true, 'data' => $product], 200);
     }
 
     public function generate_image($file = '', $size = ''){
@@ -99,7 +113,7 @@ class CatalogController extends Controller
             $image->save(storage_path('catalog/image_sm/' . $filename . '-sm.jpg'));
         }
 
-        return response()->json(['status' => true, 'data' => $product]);
+        return response()->json(['status' => true, 'data' => $product], 200);
     }
 
     public function update(Request $request, $id){
@@ -153,7 +167,7 @@ class CatalogController extends Controller
             $image->save(storage_path('catalog/image_sm/' . $filename . '-sm.jpg'));
         }
 
-        return response()->json(['status' => true, 'data' => $product]);
+        return response()->json(['status' => true, 'data' => $product], 200);
     }
 
     public function set_promo(Request $request, $id){
@@ -177,7 +191,7 @@ class CatalogController extends Controller
 
         $product->save();
 
-        return response()->json(['status' => true]);
+        return response()->json(['status' => true], 200);
     }
 
     public function change_price(Request $request, $id){
@@ -197,7 +211,7 @@ class CatalogController extends Controller
 
         $product->save();
 
-        return response()->json(['status' => true]);
+        return response()->json(['status' => true], 200);
     }
 
     public function add_stock(Request $request, $id){
@@ -217,7 +231,7 @@ class CatalogController extends Controller
 
         $product->save();
 
-        return response()->json(['status' => true]);
+        return response()->json(['status' => true], 200);
     }
 
     public function delete(Request $request, $id){
@@ -226,7 +240,7 @@ class CatalogController extends Controller
         }
 
         if($product->delete()){
-            return response()->json(['status' => true]);
+            return response()->json(['status' => true], 200);
         }
 
         return $this->responseError('Something wrong!', StatusCodes::BAD_REQUEST);

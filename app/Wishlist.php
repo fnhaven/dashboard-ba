@@ -4,9 +4,9 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class UserAdress extends Model
+class Wishlist extends Model
 {
-    protected $table = 'user_address';
+    protected $table = 'wishlist';
 
     /**
      * The attributes that should be hidden for arrays.
@@ -16,4 +16,9 @@ class UserAdress extends Model
     protected $hidden = [
         'user_id',
     ];
+
+    public function catalog()
+    {
+        return $this->belongsTo('\App\Catalog', 'catalog_id');
+    }
 }

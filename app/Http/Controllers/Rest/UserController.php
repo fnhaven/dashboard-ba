@@ -9,13 +9,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 use App\User;
+use App\UserAdress;
 use App\Token;
 
 use Carbon\Carbon;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
-use Auth, Hash;
+use Hash;
 
 class UserController extends Controller
 {
@@ -31,7 +32,7 @@ class UserController extends Controller
             return $this->responseErrorValidation(__("Whoops!"), $validator->errors());
         }
 
-        if(!$user = User::select(['email', 'fullname', 'phone_number', 'status', 'type'])->where('email', $request->email)->first()){
+        if(!$user = User::select(['id', 'email', 'fullname', 'phone_number', 'status', 'type', 'created_at', 'updated_at'])->where('email', $request->email)->first()){
             return $this->responseError('Not Found!', StatusCodes::NOT_FOUND);
         }
 
@@ -45,15 +46,28 @@ class UserController extends Controller
             return $this->responseError('Could not create token.', StatusCodes::INTERNAL_SERVER_ERROR);
         }
 
-        return response()->json(['status' => true, 'data' => [
-            'user' => $user, 
-            'token' => $token,
-            'address' => [],
-            'wishlist' => [],
-            'payment' => [],
-            'posts' => [],
-            'messages' => []
-        ]]);
+        # show user address
+        $user->address;
+        # show user wishlist
+        $user->wishlist = collect($user->wishlist)->map(function($v, $k){
+            $v->catalog;
+            $v->catalog->category_name = $v->catalog->category->name;
+
+            unset($v->catalog_id);
+            unset($v->catalog->id);
+            unset($v->catalog->category_id);
+            unset($v->catalog->category);
+
+            return $v;
+        });
+
+        return response()->json([
+            'status' => true, 
+            'msg' => 'Successfully login',
+            'data' => [
+                'token' => $token,
+                'user' => $user
+        ]], 200);
     }
 
     public function logout(Request $request){
@@ -65,7 +79,7 @@ class UserController extends Controller
             return $this->responseError('Not Found!', StatusCodes::NOT_FOUND);
         }
 
-        return response()->json(['status' => true, 'data' => $user]);
+        return response()->json(['status' => true, 'data' => $user], 200);
     }
 
     public function store(Request $request){
@@ -96,11 +110,50 @@ class UserController extends Controller
         return response()->json([
             'status' => true,
             'msg' => 'user create successfully',
-            'user' => $user
+            'data' => $user
+        ], 200);
+    }
+
+    public function store_address(Request $request){
+        $validator  = Validator::make($request->all(), [
+            'address' => 'required|min:8',
+            'city' => 'required',
+            'province' => 'required',
+            'postal_code' => 'required|min:5',
+        ]);
+
+        if($validator->fails()) {
+            return $this->responseErrorValidation(__("Whoops!"), $validator->errors());
+        }
+
+        $user = JWTAuth::parseToken()->authenticate();
+
+        $address = new UserAdress;
+
+        $address->user_id = $user->id;
+        $address->address = $request->address;
+        $address->city = $request->city;
+        $address->province = $request->province;
+        $address->postal_code = $request->postal_code;
+        $address->status = $user->address->count() ? 0 : 1;
+
+        $address->save();
+
+        unset($address->id);
+        unset($address->user_id);
+
+        return response()->json([
+            'status' => true,
+            'msg' => 'address added successfully.',
+            'data' => $address
         ]);
     }
 
     public function update(Request $request){
+
+    }
+
+    public function update_address(Request $request){
 
     }
 

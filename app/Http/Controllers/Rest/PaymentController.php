@@ -12,7 +12,7 @@ use App\Payment;
 
 use Carbon\Carbon;
 
-use Auth, Hash;
+use Hash;
 
 class PaymentController extends Controller
 {
