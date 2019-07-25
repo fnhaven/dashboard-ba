@@ -7,6 +7,7 @@ bootstrap/compiled.php
 app/storage/
 
 # Laravel 5 & Lumen specific
+config/beranda-anak.php
 public/storage
 public/hot
 storage/*.key
@@ -17,6 +18,7 @@ storage/user_image/*
 .env
 Homestead.yaml
 Homestead.json
+
 
 # Rocketeer PHP task runner and deployment package. https://github.com/rocketeers/rocketeer
 .rocketeer/
