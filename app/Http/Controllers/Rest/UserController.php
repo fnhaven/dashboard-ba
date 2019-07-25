@@ -16,12 +16,15 @@ use Carbon\Carbon;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
-use Hash;
+use DB, Hash;
 
 class UserController extends Controller
 {
     use ErrorResponses;
 
+    # login
+    # params $request
+    # return json
     public function login(Request $request){
         $validator  = Validator::make($request->all(), [
             'email' => 'required|email',
@@ -34,6 +37,10 @@ class UserController extends Controller
 
         if(!$user = User::select(['id', 'email', 'fullname', 'phone_number', 'status', 'type', 'created_at', 'updated_at'])->where('email', $request->email)->first()){
             return $this->responseError('Not Found!', StatusCodes::NOT_FOUND);
+        }
+
+        if(!$user->status){
+            return $this->responseError('User account not verified. Please verified your account.', StatusCodes::INTERNAL_SERVER_ERROR);
         }
 
         $credentials = $request->only('email', 'password');
@@ -70,18 +77,17 @@ class UserController extends Controller
         ]], 200);
     }
 
-    public function logout(Request $request){
+    public function verifying_account(Request $request){
 
     }
 
-    public function show(Request $request){
-        if(!$user = User::where('email', $request->email)->firs()){
-            return $this->responseError('Not Found!', StatusCodes::NOT_FOUND);
-        }
+    public function resend_verification_email(Request $request){
 
-        return response()->json(['status' => true, 'data' => $user], 200);
     }
 
+    # Register
+    # params $request
+    # return json
     public function store(Request $request){
         $validator  = Validator::make($request->all(), [
             'email' => 'required|min:5|email|unique:users',
@@ -114,6 +120,35 @@ class UserController extends Controller
         ], 200);
     }
 
+    public function update(Request $request){
+
+    }
+
+    public function delete(Request $request){
+
+    }
+
+    # Get user address
+    # return json
+    public function get_address(){
+        $user = JWTAuth::parseToken()->authenticate();
+
+        $address = collect($user->address)->map(function($v, $k){
+            unset($v->user_id);
+
+            return $v;
+        })->all();
+
+        return response()->json([
+            'status' => true,
+            'msg' => 'address added successfully.',
+            'data' => $address
+        ]);
+    }
+
+    # Register user address
+    # params $request
+    # return json
     public function store_address(Request $request){
         $validator  = Validator::make($request->all(), [
             'address' => 'required|min:8',
@@ -139,7 +174,6 @@ class UserController extends Controller
 
         $address->save();
 
-        unset($address->id);
         unset($address->user_id);
 
         return response()->json([
@@ -149,15 +183,85 @@ class UserController extends Controller
         ]);
     }
 
-    public function update(Request $request){
+    # Update user address
+    # params $request
+    # return json
+    public function update_address(Request $request, $id){
+        $validator  = Validator::make($request->all(), [
+            'address' => 'required|min:8',
+            'city' => 'required',
+            'province' => 'required',
+            'postal_code' => 'required|min:5',
+        ]);
 
+        if($validator->fails()) {
+            return $this->responseErrorValidation(__("Whoops!"), $validator->errors());
+        }
+
+        $user = JWTAuth::parseToken()->authenticate();
+
+        $address = UserAdress::findOrFail($id);
+
+        $address->address = $request->address;
+        $address->city = $request->city;
+        $address->province = $request->province;
+        $address->postal_code = $request->postal_code;
+
+        $address->save();
+
+        unset($address->user_id);
+
+        return response()->json([
+            'status' => true,
+            'msg' => 'address added successfully.',
+            'data' => $address
+        ]);
     }
 
-    public function update_address(Request $request){
+    # make user address as shipping address
+    # params $request
+    # return json
+    public function make_shipping_address(Request $request, $id){
+        $user = JWTAuth::parseToken()->authenticate();
 
+        $address = UserAdress::findOrFail($id);
+
+        DB::table('user_address')
+            ->where('user_id', $user->id)
+            ->update(['status' => 0]);
+        
+        $address->status = 1;
+        $address->save();
+
+        return response()->json([
+            'status' => true,
+            'msg' => 'shipping address set successfully.'
+        ]);
     }
 
-    public function delete(Request $request){
+    # delete user address
+    # params $request
+    # return json
+    public function delete_address(Request $request, $id){
+        $user = JWTAuth::parseToken()->authenticate();
 
+        $address = UserAdress::findOrFail($id);
+
+        $is_shipping_address = $address->status;
+
+        $address->delete();
+
+        if($is_shipping_address){
+            $address = $user->address->first();
+
+            $address->status = 1;
+
+            $address->save();
+        }
+
+        return response()->json([
+            'status' => true,
+            'msg' => 'shipping address set successfully.'
+        ]);
     }
 }

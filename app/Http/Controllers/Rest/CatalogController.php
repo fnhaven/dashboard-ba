@@ -46,8 +46,24 @@ class CatalogController extends Controller
         return response()->json(['status' => true, 'data' => $product], 200);
     }
 
+    public function detail($slug){
+        if(! $product = Catalog::where('slug', $slug)->first() ){
+            return $this->responseError('Not Found!', StatusCodes::NOT_FOUND);
+        }
+
+        # show product category
+        $product->category_name = $product->category->name;
+
+        unset($product->category);
+        unset($product->category_id);
+
+        return response()->json(['status' => true, 'data' => $product], 200);
+    }
+
     public function generate_image($file = '', $size = ''){
         $path = '/catalog/image';
+
+        ini_set('memory_limit', '-1');
 
         if($size == 'sm'){
             $path .= '_sm';
@@ -65,7 +81,7 @@ class CatalogController extends Controller
 
     public function store(Request $request){
         $validator  = Validator::make($request->all(), [
-            'name' => 'required|min:5',
+            'name' => 'required|min:5|unique:catalogs,name',
             'description' => 'required|min:5',
             'category' => 'required|exists:category,id',
             'image' => 'nullable|mimes:jpg,png,jpeg|max:2048',

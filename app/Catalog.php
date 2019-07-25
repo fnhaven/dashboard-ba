@@ -15,4 +15,13 @@ class Catalog extends Model
     {
         return $this->belongsTo('\App\Category', 'category_id');
     }
+
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'deleted_at',
+    ];
 }

@@ -30,8 +30,11 @@ Route::group(['prefix' => 'user'], function () {
 		
 		# user address
 		Route::group(['prefix' => 'address'], function () {
+			Route::get('/', 'Rest\UserController@get_address');
 			Route::post('/', 'Rest\UserController@store_address');
 			Route::put('{id}', 'Rest\UserController@update_address');
+			Route::put('{id}/as-shipping-address', 'Rest\UserController@make_shipping_address');
+			Route::delete('{id}', 'Rest\UserController@delete_address');
 		});
 
 		# user wishlist
@@ -52,10 +55,11 @@ Route::group(['prefix' => 'catalog'], function () {
 	# frontend neccessary
 	Route::group(['middleware' => ['api.verify']], function(){
 		Route::get('all', 'Rest\CatalogController@get_all');
-		Route::get('{id}', 'Rest\CatalogController@show');
+		Route::get('{slug}', 'Rest\CatalogController@detail');
 	});
-
+	
 	# backend neccessary
+	Route::get('get/{id}', 'Rest\CatalogController@show');
 	Route::post('/', 'Rest\CatalogController@store');
 	Route::put('{id}', 'Rest\CatalogController@update');
 	Route::delete('{id}', 'Rest\CatalogController@delete');
