@@ -39,7 +39,7 @@ class UserController extends Controller
             return $this->responseError('Not Found!', StatusCodes::NOT_FOUND);
         }
 
-        if(!$user->status){
+        if($user->status == 'not verified'){
             return $this->responseError('User account not verified. Please verified your account.', StatusCodes::INTERNAL_SERVER_ERROR);
         }
 
@@ -75,6 +75,17 @@ class UserController extends Controller
                 'token' => $token,
                 'user' => $user
         ]], 200);
+    }
+
+    public function inject_verifying_account(Request $request){
+        if(!$user = User::select(['id', 'email', 'fullname', 'phone_number', 'status', 'type', 'created_at', 'updated_at'])->where('email', $request->email)->first()){
+            return $this->responseError('Not Found!', StatusCodes::NOT_FOUND);
+        }
+
+        $user->status = 'verified';
+        $user->save();
+
+        return response()->json(['status' => true], 200);
     }
 
     public function verifying_account(Request $request){

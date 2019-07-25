@@ -20,6 +20,7 @@ Route::group(['prefix' => 'user'], function () {
 	# frontend neccessary
 	Route::group(['middleware' => ['api.verify']], function(){
 		Route::post('login', 'Rest\UserController@login');
+		Route::put('ssttt', 'Rest\UserController@inject_verifying_account');
 		Route::post('/', 'Rest\UserController@store');
 	});
 	
