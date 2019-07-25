@@ -22,6 +22,21 @@ class UserController extends Controller
 {
     use ErrorResponses;
 
+    public function get_all(){
+        $user = User::get();
+
+        $user = collect($user)->map(function($v, $k){
+            $v->wishlist;
+            $v->address;
+
+            unset($v->id);
+            
+            return $v;
+        });
+
+        return $user;
+    }
+
     # login
     # params $request
     # return json
@@ -78,7 +93,7 @@ class UserController extends Controller
     }
 
     public function inject_verifying_account(Request $request){
-        if(!$user = User::select(['id', 'email', 'fullname', 'phone_number', 'status', 'type', 'created_at', 'updated_at'])->where('email', $request->email)->first()){
+        if(!$user = User::where('email', $request->email)->first()){
             return $this->responseError('Not Found!', StatusCodes::NOT_FOUND);
         }
 
@@ -211,7 +226,9 @@ class UserController extends Controller
 
         $user = JWTAuth::parseToken()->authenticate();
 
-        $address = UserAdress::findOrFail($id);
+        if(! $address = $user->address->where('id', $id)->first()){
+            return $this->responseError('Address Not Found!', StatusCodes::NOT_FOUND);
+        }
 
         $address->address = $request->address;
         $address->city = $request->city;

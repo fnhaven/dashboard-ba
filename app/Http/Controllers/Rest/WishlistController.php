@@ -31,7 +31,7 @@ class WishlistController extends Controller
         $user = JWTAuth::parseToken()->authenticate();
         $catalog = Catalog::where('slug', $request->slug)->first();
 
-        if($wish = Wishlist::where('catalog_id', $catalog->id)->first()){
+        if($wish = $user->wishlist->where('catalog_id', $catalog->id)->first()){
             return response()->json([
                 'status' => true,
                 'msg' => 'wish already added.',
@@ -53,19 +53,10 @@ class WishlistController extends Controller
         ], 200);
     }
 
-    public function remove(Request $request){
-        $validator  = Validator::make($request->all(), [
-            'slug' => 'required|exists:catalogs,slug'
-        ]);
-
-        if($validator->fails()) {
-            return $this->responseErrorValidation(__("Whoops!"), $validator->errors());
-        }
-
+    public function remove(Request $request, $id){
         $user = JWTAuth::parseToken()->authenticate();
-        $catalog = Catalog::where('slug', $request->slug)->first();
 
-        if(!$wish = Wishlist::where('catalog_id', $catalog->id)){
+        if(!$wish = $user->wishlist->where('id', $id)->first()){
             return response()->json([
                 'status' => false,
                 'msg' => 'wishlist not found.'
