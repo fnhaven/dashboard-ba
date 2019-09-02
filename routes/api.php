@@ -85,7 +85,11 @@ Route::group(['prefix' => 'category'], function () {
 # payment
 Route::group(['prefix' => 'payment'], function () {
 	# user actions
-	Route::post('make', 'Rest\PaymentController@make');
+	Route::group(['middleware' => ['jwt.verify']], function(){
+		Route::post('make', 'Rest\PaymentController@make');
+	});
+
+	Route::match(['get', 'post'], 'notify', 'Rest\PaymentController@notify');
 });
 
 # article
