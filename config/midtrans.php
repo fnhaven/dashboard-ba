@@ -3,5 +3,6 @@
 return [
     'merchant_id' => env('MERCHANT_ID', ''),
     'server_key' => env('SERVER_KEY', ''),
-    'endpoint' => env('PAYMENT_GATEWAY_ENDPOINT', '')
+    'endpoint' => env('PAYMENT_GATEWAY_ENDPOINT', ''),
+    'api' => env('PAYMENT_GATEWAY_API', ''),
 ];

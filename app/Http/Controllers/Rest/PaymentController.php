@@ -17,6 +17,7 @@ use App\Services\Payment;
 use Carbon\Carbon;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use App\Services\Adapter\GuzzleHttpAdapter;
 
 use Hash;
 
@@ -79,7 +80,16 @@ class PaymentController extends Controller
             'customer_details' => [
                 'email' => $user->email,
                 'phone' => $user->phone_number
-            ]
+            ],
+            'callbacks'=> [
+                'finish'=> 'http://devdashboard.beranda-anak.com/api/payment/notify'
+            ],
+            'expiry'=> [
+                // 'start_time'=> '2018-12-13 18:11:08 +0700',
+                'start_time'=> Carbon::now()->format('Y-m-d H:i:s +0700'),
+                'unit'=> 'hours',
+                'duration'=> 24
+            ],
         ]);
 
         if(!$payment){
@@ -97,13 +107,52 @@ class PaymentController extends Controller
 
         $log->save();
 
-        return response()->json(['data' => $payment], 200);
+        return response()->json(['status' => true, 'data' => $payment, 'order_id' => $user_payment->payment_code], 200);
     }
 
     public function notify(Request $request){
         # TODO: check payment
         #       decrease stock if payment success
         #       update status
-        dd('on develop.', $request->all());
+        #       return to view based on status code
+
+        if(! $user_payment = UserPayment::where('payment_code', $request->order_id)->where('status_detail', 'Requested')->first() ){
+            return $this->responseError('Payment not found / Already validate', StatusCodes::NOT_FOUND);
+        }
+
+        $_payment = new \App\Services\Payment\Payment(new GuzzleHttpAdapter(), config('midtrans.api'));
+        $payment = $_payment->status($request->order_id);
+
+        # payment is requested
+        if($payment->status_code == "404"){
+            return $this->responseError($payment->status_message, StatusCodes::NOT_FOUND);
+        }
+
+        # payment pending
+        if($payment->status_code == "201"){
+            return $this->responseError($payment->status_message, StatusCodes::NOT_FOUND);
+        }
+
+        # payment denied
+        if($payment->status_code == "202"){
+            return $this->responseError($payment->status_message, StatusCodes::NOT_FOUND);
+        }
+
+        # payment success
+        if($payment->status_code == "200" && $payment->fraud_status == 'accept' && $payment->transaction_status == 'capture'){
+            $user_payment->status = 1;
+            $user_payment->status_detail = 'Accepted';
+            $user_payment->payment_type = $payment->card_type;
+            $user_payment->description = $payment->status_message;
+
+            $user_payment->save();
+        }
+
+        # payment failed
+        if($payment->status_code !== "200"){
+            return $this->responseError('Failed to request a notify payment. please try again later.', StatusCodes::INTERNAL_SERVER_ERROR);
+        }
+
+        dd('on develop.', $request->all(), $payment, $user_payment);
     }
 }
